@@ -92,15 +92,21 @@ def calculate_reward(attacker, defender, move, estimated_damage):
     if move["type"] in attacker.typing:
         reward += 10
 
+    effectiveness = 1
     # Type effectiveness evaluation
     for d_type in defender.typing:
-        effectiveness = typeRelation.type_relation[move["type"]].get(d_type, 1)
-        if effectiveness > 1:
-            reward += 30
-        elif effectiveness < 1:
-            reward -= 20
-        elif effectiveness == 0:
-            reward -= 50
+        effectiveness *= typeRelation.type_relation[move["type"]].get(d_type, 1)
+        
+    if effectiveness == 4:
+        reward += 40
+    elif effectiveness == 2:
+        reward += 20
+    elif effectiveness == 0.5:
+        reward -= 20
+    elif effectiveness == 0.25:
+        reward -= 40
+    elif effectiveness == 0:
+        reward -= 100
 
     # Reward status moves if applicable
     if move["statusChange"][0] and defender.status is None:

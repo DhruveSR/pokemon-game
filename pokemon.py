@@ -19,6 +19,7 @@ class Pokemon:
         accuracy (float): The Pokémon’s accuracy multiplier.
         evasion (float): The Pokémon’s evasion multiplier.
         critical_hit (int): The Pokémon’s critical hit multiplier (higher values mean more crits).
+        toxic_counter: Counter for badly_poison status
         current_stats (dict): The Pokémon's real-time stats during battle.
         max_hp (int): The Pokémon's maximum HP.
         hp (int): The Pokémon’s current HP.
