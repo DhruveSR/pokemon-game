@@ -88,7 +88,7 @@ def perform_move(attacker, defender, move):
         print(f"{attacker.name} is {attacker.status} and can't move!")
         
         # Chance to wake up or thaw out
-        attacker.status = np.random.choice(["sleep", "freeze", None], p=[0.3, 0.3, 0.4])
+        attacker.status = np.random.choice([attacker.status, None], p=[0.6, 0.4])
         return
 
     if attacker.status == "paralyze" and np.random.random() <= 0.3:
