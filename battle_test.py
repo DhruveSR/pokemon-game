@@ -1,4 +1,3 @@
-# ---------------------- IMPORTS ---------------------- #
 from pokemon import Pokemon
 from trainer import Trainer
 from battle_simulation import pokemon_battle
