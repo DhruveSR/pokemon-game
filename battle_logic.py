@@ -134,22 +134,27 @@ def perform_move(attacker, defender, move):
             print(f"{attacker.name} used {move['name']}! It dealt {damage} damage.")
 
         # If move changes stats, apply stat changes
-        if move["doesStatChange"][0]:
+        if move["StatChange"]:
             stat_changes = ["attack", "sp_attack", "defense", "sp_defense", "speed"]
             for i, stat in enumerate(stat_changes):
-                attacker.stats_change(stat, move["doesStatChange"][i+1])
-                defender.stats_change(stat, move["doesStatChange"][i+6])
+                attacker.stats_change(stat, move["StatChange"][i+1])
+                defender.stats_change(stat, move["StatChange"][i+6])
 
         # If move has a healing effect, heal the attacker
-        if move["heals"][0]:  
+        if move["heals"]:  
             heal_amount = int(attacker.max_hp * move["heals"][1])  
             attacker.hp = min(attacker.max_hp, attacker.hp+heal_amount)
             print(f"{attacker.name} healed for {heal_amount} HP!")
 
+        if move["damage_heals"]:
+            heal_amount = calculate_damage(attacker, defender, move)  
+            attacker.hp = min(attacker.max_hp, attacker.hp+heal_amount)
+            print(f"{attacker.name} healed for {heal_amount} HP!")
+
         # Apply status condition if possible
-        if move["statusChange"][0] and defender.status is None:
-            status_effect = move["statusChange"][1]  
-            success_chance = move["statusChange"][2]
+        if move["statusChange"] and defender.status is None:
+            status_effect = move["statusChange"][0]
+            success_chance = move["statusChange"][1]
 
             # Check if the defender is immune to the status effect
             immune = any(status_effect in typeRelation.STATUS_IMMUNITIES.get(t, []) for t in defender.typing)

@@ -1,4 +1,5 @@
 import random
+from collections import defaultdict
 
 class Pokemon:
     """
@@ -32,6 +33,7 @@ class Pokemon:
         self.base_stats = base_stats
         self.ability = ability
         self.nature = nature
+        self.nature_effect = self.nature_effect_calc(self.nature)
         self.evs = evs
         self.ivs = ivs
         self.item = item
@@ -46,6 +48,40 @@ class Pokemon:
         self.hp = self.max_hp  # Current HP starts at max
         self.check_ability_use(None, "initialize")
 
+
+    def nature_effect_calc(self, nature):
+        """Applies the nature's effect to the Pokémon's stats using a defaultdict (default = 1.0)."""
+
+        # Nature multipliers
+        nature_modifiers = {
+            "adamant":  {"attack": 1.1, "sp_attack": 0.9},
+            "modest":   {"sp_attack": 1.1, "attack": 0.9},
+            "jolly":    {"speed": 1.1, "sp_attack": 0.9},
+            "bold":     {"defense": 1.1, "attack": 0.9},
+            "calm":     {"sp_defense": 1.1, "attack": 0.9},
+            "careful":  {"sp_defense": 1.1, "sp_attack": 0.9},
+            "timid":    {"speed": 1.1, "attack": 0.9},
+            "relaxed":  {"defense": 1.1, "speed": 0.9},
+            "naive":    {"speed": 1.1, "sp_defense": 0.9},
+            "brave":    {"attack": 1.1, "speed": 0.9},
+            "quiet":    {"sp_attack": 1.1, "speed": 0.9},
+            "rash":     {"sp_attack": 1.1, "sp_defense": 0.9},
+            "gentle":   {"sp_defense": 1.1, "defense": 0.9},
+            "hasty":    {"speed": 1.1, "defense": 0.9},
+            "sassy":    {"sp_defense": 1.1, "speed": 0.9},
+            "docile":   {},  # Neutral
+            "hardy":    {},  # Neutral
+            "serious":  {},  # Neutral
+            "bashful":  {},  # Neutral
+            "quirky":   {}   # Neutral
+        }
+
+        # Default all stats to 1.0 (no change)
+        effect = defaultdict(lambda: 1.0, nature_modifiers.get(nature.lower(), {}))
+
+        # Apply multipliers to stats
+        return {stat: effect[stat] for stat in ["attack", "defense", "sp_attack", "sp_defense", "speed"]}
+
     def calc_max_hp(self):
         """Calculate and return the maximum HP of the Pokémon."""
         if self.name == "Shedinja":
@@ -59,11 +95,11 @@ class Pokemon:
             return int(((2 * self.base_stats[stat] + self.ivs[stat] + (self.evs[stat] // 4)) * self.level / 100 + 5) * nature_modifier)
 
         stats = {
-            "attack": calculate_stat("attack", self.nature["attack"]),  
-            "sp_attack": calculate_stat("sp_attack", self.nature["sp_attack"]),
-            "defense": calculate_stat("defense", self.nature["defense"]),
-            "sp_defense": calculate_stat("sp_defense", self.nature["sp_defense"]),
-            "speed": calculate_stat("speed", self.nature["speed"]),
+            "attack": calculate_stat("attack", self.nature_effect["attack"]),  
+            "sp_attack": calculate_stat("sp_attack", self.nature_effect["sp_attack"]),
+            "defense": calculate_stat("defense", self.nature_effect["defense"]),
+            "sp_defense": calculate_stat("sp_defense", self.nature_effect["sp_defense"]),
+            "speed": calculate_stat("speed", self.nature_effect["speed"]),
         }
         return stats
 
