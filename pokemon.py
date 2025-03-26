@@ -196,7 +196,7 @@ class Pokemon:
             self.stab_multiplier = 2  if self.ability == "adaptability" else 1.5  # Boosts STAB (Same-Type Attack Bonus) from 1.5x to 2x  
             self.critical_multiplier = 2.25 if self.ability == "sniper" else 1.5  # Boosts critical hits from 1.5x to 2.25x
 
-            if self.ability == "sheer force":
+            if self.ability == "sheer-force":
                 for move in self.moves.keys():
                     self.moves[move]["power"] = int(self.moves[move]["power"]*1.3)
 
@@ -221,7 +221,7 @@ class Pokemon:
         
         # Abilities that activate when defending
         elif when == "defend":
-            if self.ability == "rough skin":
+            if self.ability == "rough-skin":
                 opp.take_damage(opp.max_hp // 8)  # Deals 1/8 max HP damage if hit by a contact move
                 print(f"{opp.name} took {opp.max_hp // 8} damage.")
 
@@ -233,17 +233,17 @@ class Pokemon:
                 opp.current_stats["speed"] = opp.current_stats["spped"]//2
                 print(f"{opp.name} was paralyzed due to Static!")
 
-            elif self.ability == "poison point" and random.random() < 0.3:  # 30% chance to poison the attacker
+            elif self.ability == "poison-point" and random.random() < 0.3:  # 30% chance to poison the attacker
                 opp.status = "poison"
                 print(f"{opp.name} was poisoned due to Poison Point!")
 
         # Abilities that activate at the end of turn
         elif when == "end":
-            if self.ability == "self sufficient":
+            if self.ability == "self-sufficient":
                 self.hp = min(self.max_hp, self.hp + self.max_hp//8)  # Heals 1/3 max HP when switching out
 
-            elif self.ability == "poison heal" and self.status == "poison":
+            elif self.ability == "poison-heal" and self.status == "poison":
                 self.hp = min(self.max_hp, self.hp + self.max_hp//8)  # Heals instead of taking poison damage
 
-            elif self.ability == "speed boost":
+            elif self.ability == "speed-boost":
                 self.current_stats["speed"] *= 1.5  # Boosts Speed at the end of each turn  

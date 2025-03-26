@@ -188,8 +188,3 @@ if __name__ == "__main__":
         insert_move_into_db(i)
 
     print("Move database populated successfully!")
-
-    cursor.execute("SELECT * FROM Moves WHERE name = ?", ("mega-drain",))
-    cursor.execute("SELECT * FROM Moves WHERE name = ?", ("tackle",))
-    move = cursor.fetchone()
-    print(move)

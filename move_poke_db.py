@@ -1,13 +1,19 @@
 import sqlite3
 import requests
 
-# Connect to SQLite database
-conn = sqlite3.connect("pokemon.db")
-cursor = conn.cursor()
+# Connect to both databases
+pokemon_conn = sqlite3.connect("pokemon_db.sqlite")
+pokemon_cursor = pokemon_conn.cursor()
 
-# Create the pokemon_move_db table
+move_conn = sqlite3.connect("move_db.sqlite")
+move_cursor = move_conn.cursor()
+
+relation_conn = sqlite3.connect("pokemon_move_db.sqlite")
+relation_cursor = relation_conn.cursor()
+
+# Create the pokemon_move_db table in pokemon_move_db.sqlite
 def create_pokemon_move_table():
-    cursor.execute("""
+    relation_cursor.execute("""
     CREATE TABLE IF NOT EXISTS pokemon_move_db (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         pokemon_id INTEGER NOT NULL,
@@ -18,16 +24,16 @@ def create_pokemon_move_table():
         FOREIGN KEY (move_id) REFERENCES Moves(id) ON DELETE CASCADE
     );
     """)
-    conn.commit()
+    relation_conn.commit()
 
-# Retrieve all Pokémon IDs and Names from Pokemon table
+# Retrieve all Pokémon IDs and Names from pokemon_db.sqlite
 def get_all_pokemon():
-    cursor.execute("SELECT id, name FROM Pokemon")
-    return cursor.fetchall()  # Returns a list of (pokemon_id, pokemon_name)
+    pokemon_cursor.execute("SELECT id, name FROM Pokemon")
+    return pokemon_cursor.fetchall()  # Returns a list of (pokemon_id, pokemon_name)
 
 # Fetch moves for a specific Pokémon and insert into pokemon_move_db
 def fetch_and_store_pokemon_moves(pokemon_id, pokemon_name):
-    url = "https://pokeapi.co/api/v2/pokemon/" + str(pokemon_id)
+    url = f"https://pokeapi.co/api/v2/pokemon/{pokemon_id}"
     response = requests.get(url)
 
     if response.status_code != 200:
@@ -39,20 +45,20 @@ def fetch_and_store_pokemon_moves(pokemon_id, pokemon_name):
     for move in data["moves"]:
         move_name = move["move"]["name"]
 
-        # Check if move exists in Moves table
-        cursor.execute("SELECT id FROM Moves WHERE name = ?", (move_name,))
-        move_entry = cursor.fetchone()
+        # Check if move exists in move_db.sqlite
+        move_cursor.execute("SELECT id FROM Moves WHERE name = ?", (move_name,))
+        move_entry = move_cursor.fetchone()
 
         if move_entry:
             move_id = move_entry[0]
 
             # Insert into pokemon_move_db if the relation doesn't already exist
-            cursor.execute("""
-                INSERT INTO pokemon_move_db (pokemon_id, pokemon_name, move_id, move_name) 
+            relation_cursor.execute("""
+                INSERT OR IGNORE INTO pokemon_move_db (pokemon_id, pokemon_name, move_id, move_name) 
                 VALUES (?, ?, ?, ?)
             """, (pokemon_id, pokemon_name, move_id, move_name))
 
-    conn.commit()
+    relation_conn.commit()
 
 # Main function to process all Pokémon
 def populate_pokemon_moves():
@@ -68,18 +74,20 @@ if __name__ == "__main__":
     populate_pokemon_moves()
 
     # Print first 5 rows
-    cursor.execute("SELECT * FROM pokemon_move_db LIMIT 5")
-    rows = cursor.fetchall()
+    relation_cursor.execute("SELECT * FROM pokemon_move_db LIMIT 5")
+    rows = relation_cursor.fetchall()
 
     print("First 5 rows:")
     for row in rows:
         print(row)
 
     # Get total count of entries
-    cursor.execute("SELECT COUNT(*) FROM pokemon_move_db")
-    total_count = cursor.fetchone()[0]
+    relation_cursor.execute("SELECT COUNT(*) FROM pokemon_move_db")
+    total_count = relation_cursor.fetchone()[0]
 
     print(f"Total entries in pokemon_move_db: {total_count}")
 
-    # Close the database connection
-    conn.close()
+    # Close database connections
+    pokemon_conn.close()
+    move_conn.close()
+    relation_conn.close()
