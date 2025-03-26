@@ -13,6 +13,7 @@ def create_moves_table():
         type TEXT NOT NULL,
         power INTEGER,
         accuracy REAL,
+        effect TEXT,
         priority INTEGER NOT NULL DEFAULT 0,
         multi_hit INTEGER NOT NULL DEFAULT 0,
 
@@ -76,6 +77,8 @@ def insert_move_into_db(move_no):
     power = move_data["power"] if move_data["power"] is not None else None
 
     accuracy = move_data["accuracy"]/100 if move_data["accuracy"] is not None else None
+
+    effect = move_data["effect_entries"][0]["effect"]
 
     priority = move_data["priority"]
 
@@ -160,11 +163,11 @@ def insert_move_into_db(move_no):
     try:
         cursor.execute("""
             INSERT INTO Moves (
-                name, type, power, accuracy, priority, multi_hit, stat_user_attack, stat_user_defense, stat_user_sp_attack, stat_user_sp_defense, stat_user_speed, stat_opp_attack, stat_opp_defense, stat_opp_sp_attack, stat_opp_sp_defense, stat_opp_speed, status_change, status_chance, effective_state, heals, damage_heals
+                name, type, power, accuracy, priority, effect, multi_hit, stat_user_attack, stat_user_defense, stat_user_sp_attack, stat_user_sp_defense, stat_user_speed, stat_opp_attack, stat_opp_defense, stat_opp_sp_attack, stat_opp_sp_defense, stat_opp_speed, status_change, status_chance, effective_state, heals, damage_heals
             ) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
-            name, move_type, power, accuracy, priority, multi_hit, stat_user_attack, stat_user_defense, stat_user_sp_attack, stat_user_sp_defense, stat_user_speed, stat_opp_attack, stat_opp_defense, stat_opp_sp_attack, stat_opp_sp_defense, stat_opp_speed, status_change, status_chance, effective_state, heals, damage_heals
+            name, move_type, power, accuracy, priority, effect, multi_hit, stat_user_attack, stat_user_defense, stat_user_sp_attack, stat_user_sp_defense, stat_user_speed, stat_opp_attack, stat_opp_defense, stat_opp_sp_attack, stat_opp_sp_defense, stat_opp_speed, status_change, status_chance, effective_state, heals, damage_heals
         ))
         conn.commit()
         print(f"Inserted {name} into database successfully!")
@@ -186,5 +189,19 @@ if __name__ == "__main__":
     # Fetch and insert first 100 moves
     for i in range(1, 166):  
         insert_move_into_db(i)
+    
+    # Print first 5 rows
+    cursor.execute("SELECT * FROM Moves LIMIT 5")
+    rows = cursor.fetchall()
+
+    print("First 5 rows:")
+    for row in rows:
+        print(row)
+
+    # Get total count of entries
+    cursor.execute("SELECT COUNT(*) FROM Moves")
+    total_count = cursor.fetchone()[0]
+
+    print(f"Total entries in Moves: {total_count}")
 
     print("Move database populated successfully!")

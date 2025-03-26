@@ -15,8 +15,11 @@ def create_pokemon_table():
         base_sp_defense INTEGER NOT NULL,
         base_speed INTEGER NOT NULL,
         ability1 TEXT NOT NULL,   -- First possible ability
+        ability1_text TEXT NOT NULL, -- First ability text
         ability2 TEXT,            -- Second possible ability (optional)
-        ability3 TEXT       -- Hidden ability (optional)
+        ability2_text TEXT, -- First ability text
+        ability3 TEXT,  -- Hidden ability (optional)
+        ability3_text TEXT -- First ability text
     );
     """)
     conn.commit()
@@ -33,6 +36,24 @@ def fetch_pokemon_data(pokemon_no):
         return data
     else:
         print(f"Error: {response.status_code} - Could not fetch data for {pokemon_no}")
+        return None
+    
+
+def fetch_ability_text(url):
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        abilities_data = response.json()
+        abilities_data = abilities_data["effect_entries"]
+        for ability_data in abilities_data:
+            if ability_data["language"]["name"] == "en":
+                return ability_data["effect"]
+        
+        print("Couldn't fetch ability info in english.")
+        return None
+    
+    else:
+        print(f"Error: {response.status_code} - Could not fetch data for this ability.")
         return None
 
 
@@ -57,16 +78,17 @@ def insert_pokemon_into_db(poke_no):
     base_speed = pokemon_data["stats"][5]["base_stat"]
 
     ability1 = pokemon_data["abilities"][0]["ability"]["name"]
-    ability2 = pokemon_data["abilities"][1]["ability"]["name"] if len(pokemon_data["abilities"]) > 1   else None
-    ability3 = pokemon_data["abilities"][2]["ability"]["name"] if len(pokemon_data["abilities"]) > 2   else None
+    ability1_text = fetch_ability_text(pokemon_data["abilities"][0]["ability"]["url"])
+    ability2 = pokemon_data["abilities"][1]["ability"]["name"] if len(pokemon_data["abilities"]) > 1 else None
+    ability2_text = fetch_ability_text(pokemon_data["abilities"][1]["ability"]["url"]) if ability2 else None
+    ability3 = pokemon_data["abilities"][2]["ability"]["name"] if len(pokemon_data["abilities"]) > 2 else None
+    ability3_text = fetch_ability_text(pokemon_data["abilities"][2]["ability"]["url"]) if ability3 else None
 
     try:
         cursor.execute("""
-            INSERT INTO Pokemon (name, type1, type2, base_hp, base_attack, base_defense, base_sp_attack, 
-                                base_sp_defense, base_speed, ability1, ability2, ability3) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (name, type1, type2, base_hp, base_attack, base_defense, base_sp_attack, 
-              base_sp_defense, base_speed, ability1, ability2, ability3))
+            INSERT INTO Pokemon (name, type1, type2, base_hp, base_attack, base_defense, base_sp_attack, base_sp_defense, base_speed, ability1, ability1_text, ability2, ability2_text,  ability3, ability3_text) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (name, type1, type2, base_hp, base_attack, base_defense, base_sp_attack, base_sp_defense, base_speed, ability1, ability1_text, ability2, ability2_text, ability3, ability3_text))
 
         conn.commit()
         print(f"Inserted {name} into database successfully!")
@@ -88,6 +110,18 @@ if __name__ == "__main__":
     for i in range(1, 152):
         insert_pokemon_into_db(i)
     
-    # create_pokemon_moves_table()
+    # Print first 5 rows
+    cursor.execute("SELECT * FROM pokemon LIMIT 5")
+    rows = cursor.fetchall()
+
+    print("First 5 rows:")
+    for row in rows:
+        print(row)
+
+    # Get total count of entries
+    cursor.execute("SELECT COUNT(*) FROM pokemon")
+    total_count = cursor.fetchone()[0]
+
+    print(f"Total entries in pokemon: {total_count}")
 
     print("Database and tables created successfully!")

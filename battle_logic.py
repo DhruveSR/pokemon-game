@@ -137,8 +137,8 @@ def perform_move(attacker, defender, move):
         if move["StatChange"]:
             stat_changes = ["attack", "sp_attack", "defense", "sp_defense", "speed"]
             for i, stat in enumerate(stat_changes):
-                attacker.stats_change(stat, move["StatChange"][i+1])
-                defender.stats_change(stat, move["StatChange"][i+6])
+                attacker.stats_change(stat, move["StatChange"][i])
+                defender.stats_change(stat, move["StatChange"][i+5])
 
         # If move has a healing effect, heal the attacker
         if move["heals"]:  
