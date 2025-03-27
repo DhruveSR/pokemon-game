@@ -178,6 +178,8 @@ def simulate_battle_RL(rl_trainer, opp_trainer):
     opp.hp = opp.max_hp
 
     turn = 1
+    lastmove1 = None
+    lastmove2 = None
     # Run battle loop until one Pokémon faints
     while not agent.is_fainted() and not opp.is_fainted():
         print(f"\n--- Turn {turn} ---")
@@ -187,7 +189,12 @@ def simulate_battle_RL(rl_trainer, opp_trainer):
         if turn % 2 == 1:
             # Odd turn: RL agent attacks first
             print(f"[Turn Order] {agent.name} (RL Agent) attacks first.")
-            move_rl = battleAI_RL(agent, opp)
+            if agent.item["name"] in ["choice-band", "choice-scarf", "choice-specs"] and lastmove1:
+                move_rl = lastmove1
+            else:
+                move_rl = battleAI_RL(agent, opp)
+                lastmove1 = move_rl
+
             print(f"{agent.name} (RL Agent) used '{move_rl}'.")
             print(f"After move, {opp.name} HP: {opp.hp}/{opp.max_hp}")
             if opp.is_fainted():
@@ -195,7 +202,9 @@ def simulate_battle_RL(rl_trainer, opp_trainer):
                 break
 
             # Opponent selects and executes its move
-            move_opp = battle_ai.battleAI(opp, agent)
+            move_opp = battle_ai.battleAI(opp, agent, lastmove2)
+            lastmove2 = move_opp
+            
             # Execute opponent's move
             perform_move(opp, agent, opp.moves[move_opp])
             print(f"{opp.name} (Opponent) used '{move_opp}'.")

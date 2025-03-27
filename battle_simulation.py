@@ -19,6 +19,7 @@ def pokemon_battle(trainer1, trainer2):
     pokemon2.check_ability_use(pokemon1, "switch")
 
     last_move1 = None  # Track Pokémon 1's last move (for Choice items)
+    last_move2 = None  # Track Pokémon 2's last move (for Choice items)
 
     # Battle loop continues while both trainers have usable Pokémon
     while trainer1.has_pokemon_left() and trainer2.has_pokemon_left():
@@ -26,7 +27,8 @@ def pokemon_battle(trainer1, trainer2):
         pokemon1, pokemon2 = trainer1.get_active_pokemon(), trainer2.get_active_pokemon()
 
         # AI selects an action for Pokémon 2
-        action2 = battleAI(pokemon2, pokemon1)
+        action2 = battleAI(pokemon2, pokemon1, last_move2)
+        last_move2 = action2
         
         # Display the current state of the battle
         print(f"{trainer1.name}'s {pokemon1}\n{trainer2.name}'s {pokemon2}\n")

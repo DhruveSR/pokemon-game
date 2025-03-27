@@ -99,7 +99,7 @@ def insert_pokemon_into_db(poke_no):
 
 if __name__ == "__main__":
     # Connect to SQLite (or create the database if it doesn't exist)
-    conn = sqlite3.connect("pokemon_db.sqlite")
+    conn = sqlite3.connect("database/pokemon_db.sqlite")
     cursor = conn.cursor()
 
     # Enable foreign key support

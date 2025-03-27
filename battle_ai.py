@@ -2,13 +2,16 @@ import random
 import typeRelation
 from battle_logic import calculate_damage
 
-def battleAI(attacker, defender):
+def battleAI(attacker, defender, last_move):
     """
     Decision-making for selecting the best move in battle.
     - Prioritizes moves that deal the most damage.
     - Uses status moves strategically.
     - Prefers healing moves when HP is low.
     """
+
+    if attacker.item["name"] in ["choice-band", "choice-scarf", "choice-specs"] and last_move:
+        return last_move
 
     move_scores = {}
 

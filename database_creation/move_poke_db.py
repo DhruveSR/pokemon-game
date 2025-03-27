@@ -2,13 +2,13 @@ import sqlite3
 import requests
 
 # Connect to both databases
-pokemon_conn = sqlite3.connect("pokemon_db.sqlite")
+pokemon_conn = sqlite3.connect("database/pokemon_db.sqlite")
 pokemon_cursor = pokemon_conn.cursor()
 
-move_conn = sqlite3.connect("move_db.sqlite")
+move_conn = sqlite3.connect("database/move_db.sqlite")
 move_cursor = move_conn.cursor()
 
-relation_conn = sqlite3.connect("pokemon_move_db.sqlite")
+relation_conn = sqlite3.connect("database/pokemon_move_db.sqlite")
 relation_cursor = relation_conn.cursor()
 
 # Create the pokemon_move_db table in pokemon_move_db.sqlite

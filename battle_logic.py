@@ -45,8 +45,8 @@ def calculate_damage(attacker, defender, move):
     critical = attacker.critical_multiplier if np.random.random() < ((1 / 24) * attacker.critical_hit) else 1
     
     # Determine if move uses physical or special stats
-    att_stat = "attack" if move["effective_state"] == "physical" else "sp_attack"
-    def_stat = "defense" if move["effective_state"] == "physical" else "sp_defense"
+    att_stat = "attack" if move["effectiveState"] == "physical" else "sp_attack"
+    def_stat = "defense" if move["effectiveState"] == "physical" else "sp_defense"
     
     # Calculate attack stat with potential critical hit impact
     A = attacker.current_stats[att_stat] if critical == 1 else attacker.base_stats[att_stat]
@@ -123,7 +123,7 @@ def perform_move(attacker, defender, move):
                 return
 
             # **Ability Check - Water Absorb (Heals when hit by Water moves)**
-            if defender.ability == "water absorb" and move["type"] == "water":
+            if defender.ability == "water-absorb" and move["type"] == "water":
                 heal_amount = calculate_damage(attacker, defender, move)
                 defender.hp = min(defender.max_hp, defender.hp+heal_amount)
                 print(f"{defender.name} absorbed the Water move and healed {heal_amount} HP!")
@@ -142,11 +142,11 @@ def perform_move(attacker, defender, move):
 
         # If move has a healing effect, heal the attacker
         if move["heals"]:  
-            heal_amount = int(attacker.max_hp * move["heals"][1])  
+            heal_amount = int(attacker.max_hp * move["heals"])  
             attacker.hp = min(attacker.max_hp, attacker.hp+heal_amount)
             print(f"{attacker.name} healed for {heal_amount} HP!")
 
-        if move["damage_heals"]:
+        if move["damageHeals"]:
             heal_amount = calculate_damage(attacker, defender, move)  
             attacker.hp = min(attacker.max_hp, attacker.hp+heal_amount)
             print(f"{attacker.name} healed for {heal_amount} HP!")
@@ -176,9 +176,9 @@ def select_order(priority1, priority2, speed1, speed2, item1, item2):
         return [1, 2] if priority1 > priority2 else [2, 1]
     
     # Quick Claw Activation - 20% chance for the holder to move first
-    if item1 and item1["name"] == "quick claw" and random.random() < 0.2:
+    if item1 and item1["name"] == "quick-claw" and random.random() < 0.2:
         return [1, 2]  # Pokémon 1 moves first
-    if item2 and item2["name"] == "quick claw" and random.random() < 0.2:
+    if item2 and item2["name"] == "quick-claw" and random.random() < 0.2:
         return [2, 1]  # Pokémon 2 moves first
 
     # Speed check - The Pokémon with the higher speed stat moves first

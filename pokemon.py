@@ -134,25 +134,25 @@ class Pokemon:
             if self.item["name"] == "leftovers" and when == "end":
                 self.hp = min(self.max_hp, self.hp + self.max_hp // 16)  # Restores 1/16 of max HP at the end of turn
 
-            elif self.item["name"] == "black sludge" and when == "end":
+            elif self.item["name"] == "black-sludge" and when == "end":
                 if "poison" in self.typing:
                     self.hp = min(self.max_hp, self.hp + self.max_hp // 16)  # Heals if Poison-type
                 else:
                     self.take_damage(self.max_hp // 16)  # Damages non-Poison types
 
-            elif self.item["name"] == "choice band" and when == "switch":
+            elif self.item["name"] == "choice-band" and when == "switch":
                 self.current_stats["attack"] = int(self.current_stats["attack"] * 1.5)  # Boosts Attack by 50%
 
-            elif self.item["name"] == "choice scarf" and when == "switch":
+            elif self.item["name"] == "choice-scarf" and when == "switch":
                 self.current_stats["speed"] = int(self.current_stats["speed"] * 1.5)  # Boosts Speed by 50%
 
-            elif self.item["name"] == "choice specs" and when == "switch":
+            elif self.item["name"] == "choice-specs" and when == "switch":
                 self.current_stats["sp_attack"] = int(self.current_stats["sp_attack"] * 1.5)  # Boosts Special Attack by 50%
 
-            elif self.item["name"] == "assault vest" and when == "switch":
+            elif self.item["name"] == "assault-vest" and when == "switch":
                 self.current_stats["sp_defense"] = int(self.current_stats["sp_defense"] * 1.5)  # Boosts Special Defense by 50%
 
-            elif self.item["name"] == "white herb" and not self.item["used"]:
+            elif self.item["name"] == "white-herb" and not self.item["used"]:
                 # Restores stats that were lowered once
                 initial_stat = self.calc_initial_stats()
                 for stat in self.current_stats.keys():
@@ -161,32 +161,32 @@ class Pokemon:
                         self.item["used"] = True
                         break
 
-            elif self.item["name"] == "sitrus berry" and not self.item["used"]:
+            elif self.item["name"] == "sitrus-berry" and not self.item["used"]:
                 if self.hp < self.max_hp // 2:
                     self.hp = min(self.max_hp, self.hp + self.max_hp // 4)  # Heals 1/4 max HP when below 50% HP
                     self.item["used"] = True
 
-            elif self.item["name"] == "lum berry" and not self.item["used"]:
+            elif self.item["name"] == "lum-berry" and not self.item["used"]:
                 if self.status is not None:
                     self.status = None  # Cures any status condition
                     self.item["used"] = True
 
-            elif self.item["name"] == "clear amulet":
+            elif self.item["name"] == "clear-amulet":
                 # Prevents stat reductions
                 initial_stat = self.calc_initial_stats()
                 for stat in self.current_stats.keys():
                     if self.current_stats[stat] < initial_stat[stat]:
                         self.current_stats[stat] = initial_stat[stat]
 
-            elif self.item["name"] == "life orb" and when == "switch":
+            elif self.item["name"] == "life-orb" and when == "switch":
                 for move in self.moves.keys():
                     self.moves[move]["power"] = int(self.moves[move]["power"]*1.3)
 
-            elif self.item["name"] == "rocky helmet" and when == "defend":
+            elif self.item["name"] == "rocky-helmet" and when == "defend":
                 opp.take_damage(opp.max_hp // 6)  # Deals damage to attackers who use contact moves
                 print(f"{opp.name} took {opp.max_hp // 6} damage.")
 
-            elif self.item["name"] == "light ball" and when == "switch":
+            elif self.item["name"] == "light-ball" and when == "switch":
                 if self.name.lower() == "pikachu":
                     self.current_stats["attack"] = int(self.current_stats["attack"] * 2)  # Doubles Attack for Pikachu
                     self.current_stats["sp_attack"] = int(self.current_stats["sp_attack"] * 2)  # Doubles Special Attack for Pikachu

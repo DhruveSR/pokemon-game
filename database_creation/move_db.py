@@ -178,7 +178,7 @@ def insert_move_into_db(move_no):
 
 if __name__ == "__main__":
     # Connect to SQLite (or create the database if it doesn't exist)
-    conn = sqlite3.connect("move_db.sqlite")
+    conn = sqlite3.connect("database/move_db.sqlite")
     cursor = conn.cursor()
 
     # Enable foreign key support
