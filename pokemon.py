@@ -105,7 +105,7 @@ class Pokemon:
 
     def stats_change(self, stat, change):
         """Modify a Pokémon's battle stats (attack, defense, speed, etc.) with a given multiplier."""
-        self.current_stats[stat] = max(1, int(self.current_stats[stat] * change))  # Ensures the stat doesn't drop below 1
+        self.current_stats[stat] = max(1, int(self.current_stats[stat]*change))  # Ensures the stat doesn't drop below 1
 
     def other_stats_change(self, other_stat, change):
         """Modify non-basic stats (accuracy, evasion, critical hit chance)."""

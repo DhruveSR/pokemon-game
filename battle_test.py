@@ -90,34 +90,6 @@ def retrieve_and_format_moves(name):
     
     return move
 
-# ---------------------- MOVE DEFINITIONS ---------------------- #
-moves = {
-    "flamethrower": {
-        "name": "Flamethrower", "type": "fire", "power": 90, "accuracy": 1.0, "priority": 1, "multi_hit": False, "doesStatChange": None, "statusChange": ["burn", 0.1], "effective_state": "special", "heals": [False]
-    },
-    "ice beam": {
-        "name": "Ice beam", "type": "ice", "power": 90, "accuracy": 1.0, "priority": 1, "multi_hit": False, "doesStatChange": [False], "statusChange": [True, "freeze", 0.1], "effective_state": "special", "heals": [False]
-    },
-    "will o wisp": {
-        "name": "Will o Wisp", "type": "fire", "power": 0, "accuracy": 0.9, "priority": 1, "multi_hit": False, "doesStatChange": [False], "statusChange": [True, "burn", 0.9], "effective_state": "special", "heals": [False]
-    },
-    "thunderbolt": {
-        "name": "Thunderbolt", "type": "electric", "power": 90, "accuracy": 1.0, "priority": 1, "multi_hit": False, "doesStatChange": [False], "statusChange": [True, "paralyze", 0.1], "effective_state": "special", "heals": [False]
-    },
-    "surf": {
-        "name": "Surf", "type": "water", "power": 90, "accuracy": 1.0, "priority": 1, "multi_hit": False, "doesStatChange": [False], "statusChange": [False], "effective_state": "special", "heals": [False]
-    },
-    "toxic": {
-        "name": "Toxic", "type": "poison", "power": 0, "accuracy": 0.9, "priority": 1, "multi_hit": False, "doesStatChange": [False], "statusChange": [True, "badly_poison", 0.9], "effective_state": "special", "heals": [False]
-    },
-    "recover": {
-        "name": "Recover", "type": "normal", "power": 0, "accuracy": 1.0, "priority": 1, "multi_hit": False, "doesStatChange": [False], "heals": [True, 0.5], "statusChange": [False], "effective_state": "special"
-    },
-    "earthquake": {
-        "name": "Earthquake", "type": "ground", "power": 100, "accuracy": 1.0, "priority": 1, "multi_hit": False, "doesStatChange": [False], "statusChange": [False], "effective_state": "physical", "heals": [False]
-    }
-}
-
 
 # ---------------------- POKEMON DEFINITIONS ---------------------- #
 charizard = Pokemon(
@@ -264,9 +236,9 @@ mewtwo = Pokemon(
     item={"name": "choice-specs"},
     moves={
         "psychic": retrieve_and_format_moves("psychic"), 
-        "thunderbolt": retrieve_and_format_moves("shadow ball"), 
+        "thunderbolt": retrieve_and_format_moves("thunderbolt"), 
         "recover": retrieve_and_format_moves("recover"), 
-        "ice beam": retrieve_and_format_moves("ice beam")
+        "ice-beam": retrieve_and_format_moves("ice-beam")
         },
     status=None,
     accuracy=1.0,
@@ -383,33 +355,14 @@ tauros = Pokemon(
     evasion=1.0,
     critical_hit=1
 )
-
-# garchomp = Pokemon(
-#     name="Garchomp",
-#     typing=["dragon", "ground"],
-#     level=50,
-#     base_stats={"hp": 108, "attack": 130, "defense": 95, "sp_attack": 80, "sp_defense": 85, "speed": 102},
-#     ability="rough skin",
-#     nature="modest",
-#     evs={"hp": 80, "attack": 120, "defense": 90, "sp_attack": 60, "sp_defense": 90, "speed": 120},
-#     ivs={"hp": 31, "attack": 31, "defense": 31, "sp_attack": 31, "sp_defense": 31, "speed": 31},
-#     item={"name": "rocky helmet"},
-#     moves={"earthquake": moves["earthquake"], "toxic": moves["toxic"]},
-#     status=None,
-#     accuracy=1.0,
-#     evasion=1.0,
-#     critical_hit=1
-# )
-
 # ---------------------- TRAINER DEFINITIONS ---------------------- #
 
-trainer1 = Trainer("Ash", [copy_pokemon(snorlax), copy_pokemon(mew)])
-trainer2 = Trainer("Misty", [copy_pokemon(blastoise), copy_pokemon(charizard), copy_pokemon(venusaur)])
+# trainer1 = Trainer("Ash", [copy_pokemon(snorlax), copy_pokemon(mew)])
+trainer1 = Trainer("Ash", [copy_pokemon(mew)])
+# trainer2 = Trainer("Misty", [copy_pokemon(blastoise), copy_pokemon(charizard), copy_pokemon(venusaur)])
+trainer2 = Trainer("Misty", [copy_pokemon(venusaur)])
 
 
 # ---------------------- START BATTLE ---------------------- #
 if __name__ == "__main__":
-    # pokemon_battle(trainer1, trainer2)
-    import sys
-    move = sys.argv[1]
-    print(retrieve_and_format_moves(move.strip()))
+    pokemon_battle(trainer1, trainer2)

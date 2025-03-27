@@ -116,11 +116,11 @@ def perform_move(attacker, defender, move):
     # Check if move hits based on accuracy
     if np.random.random() < (move["accuracy"] * attacker.accuracy / defender.evasion):
         if move["name"] in ["seismic-toss", "night-shade"]:
-            if move["name"] == "seismic-toss" and defender.type == "ghost":
+            if move["name"] == "seismic-toss" and "ghost" in defender.typing:
                 print(f"{defender.name} is immune to Seismic Toss!")
                 return
 
-            elif move["name"] == "night-shade" and defender.type == "normal":
+            elif move["name"] == "night-shade" and "normal" in defender.typing:
                 print(f"{defender.name} is immune to Night Shade!")
                 return
             
@@ -148,8 +148,8 @@ def perform_move(attacker, defender, move):
         if move["StatChange"]:
             stat_changes = ["attack", "sp_attack", "defense", "sp_defense", "speed"]
             for i, stat in enumerate(stat_changes):
-                attacker.stats_change(stat, move["StatChange"][i])
-                defender.stats_change(stat, move["StatChange"][i+5])
+                attacker.stats_change(stat, move["StatChange"][0][i])
+                defender.stats_change(stat, move["StatChange"][0][i+5])
 
         # If move has a healing effect, heal the attacker
         if move["heals"]:  

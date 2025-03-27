@@ -122,6 +122,9 @@ def calculate_reward(attacker, defender, move, estimated_damage):
         elif status_effect == "toxic":
             reward += 25
 
+    if move["statusChange"] and defender.status is not None:
+        reward -= 100
+
     # Reward healing if HP is low
     if move["heals"] and attacker.hp <= attacker.max_hp * 0.5:
         reward += 40
@@ -186,6 +189,8 @@ def simulate_battle_RL(rl_trainer, opp_trainer):
     lastmove2 = None
     # Run battle loop until one Pokémon faints
     while not agent.is_fainted() and not opp.is_fainted():
+        if turn >=10:
+            break
         print(f"\n--- Turn {turn} ---")
         print(f"{agent.name} HP: {agent.hp}/{agent.max_hp}")
         print(f"{opp.name} HP: {opp.hp}/{opp.max_hp}")
@@ -257,17 +262,17 @@ def simulate_battle_RL(rl_trainer, opp_trainer):
 
 # -------------------- TRAINING LOOP -------------------- #
 from battle_test import charizard, blastoise, venusaur, pikachu, snorlax, alakazam, gengar, dragonite, mewtwo, tauros, mew, gyarados
-def train_RL_agent(episodes=1000):
+def train_RL_agent(episodes=50):
     """
     Train the RL agent by simulating multiple battles.
     Logs are printed for each battle.
     Adjust the number of episodes as needed.
     """
     load_Q_table()
-    wins = 0
     pokemons = [charizard, blastoise, venusaur, pikachu, snorlax, alakazam, gengar, dragonite, mewtwo, tauros, mew, gyarados]
     for rl_agent in pokemons:
         for base_poke in pokemons:
+            wins = 0
             for episode in range(episodes):
                 # For training, create new trainers with fresh copies of Pokémon.
                 # Using helper functions to generate new instances.
@@ -306,4 +311,4 @@ def baseline_pokemon(base_poke):
 # -------------------- MAIN ENTRY POINT -------------------- #
 if __name__ == "__main__":
     # Set the number of training episodes as desired.
-    train_RL_agent(episodes=1000)
+    train_RL_agent(episodes=10000)
