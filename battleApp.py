@@ -45,7 +45,7 @@ def simulate_battle(request: BattleRequest):
     trainer2_pokemon = []
     for poke in request.trainer2.pokemon:
         moves = {name: retrieve_and_format_moves(name) for name in poke.moves}
-        trainer2_pokemon.append(Pokemon(**poke.dict(exclude={"moves"}), moves=moves))
+        trainer2_pokemon.append(Pokemon(**poke.model_dump(exclude={"moves"}), moves=moves))
 
     trainer1 = Trainer(request.trainer1.name, trainer1_pokemon)
     trainer2 = Trainer(request.trainer2.name, trainer2_pokemon)

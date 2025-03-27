@@ -29,12 +29,12 @@ def update_Q(state, action, reward, next_state, moves):
     current_q = get_Q(state, action)
     Q_table[(state, action)] = current_q + ALPHA * (reward + GAMMA * max_future_q - current_q)
 
-def save_Q_table(filename="q_table.pkl"):
+def save_Q_table(filename="final_qtable/q_table.pkl"):
     """Persist the Q-table to disk."""
     with open(filename, "wb") as f:
         pickle.dump(Q_table, f)
 
-def load_Q_table(filename="q_table.pkl"):
+def load_Q_table(filename="final_qtable/q_table.pkl"):
     """Load the Q-table from disk."""
     global Q_table
     try:
@@ -311,4 +311,4 @@ def baseline_pokemon(base_poke):
 # -------------------- MAIN ENTRY POINT -------------------- #
 if __name__ == "__main__":
     # Set the number of training episodes as desired.
-    train_RL_agent(episodes=10000)
+    train_RL_agent(episodes=1000)
