@@ -4,7 +4,7 @@ import pickle
 # Load Q-table from a file
 Q_table = {}
 
-def load_Q_table(filename="q_table.pkl"):
+def load_Q_table(filename="final_qtable/q_table.pkl"):
     """Load the Q-table from disk."""
     global Q_table
     try:
