@@ -112,9 +112,20 @@ def perform_move(attacker, defender, move):
                 defender.take_damage(damage)
                 print(f"{attacker.name} hit {defender.name} for {damage} damage!")
         return
-
+    
     # Check if move hits based on accuracy
     if np.random.random() < (move["accuracy"] * attacker.accuracy / defender.evasion):
+        if move["name"] in ["seismic-toss", "night-shade"]:
+            if move["name"] == "seismic-toss" and defender.type == "ghost":
+                print(f"{defender.name} is immune to Seismic Toss!")
+                return
+
+            elif move["name"] == "night-shade" and defender.type == "normal":
+                print(f"{defender.name} is immune to Night Shade!")
+                return
+            
+            return defender.take_damage(attacker.level)
+            
         # **Ability Check - Levitate (Immunity to Ground moves)**
         if move["power"]:  # If move has power, deal damage
 

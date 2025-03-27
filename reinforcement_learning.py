@@ -1,5 +1,6 @@
 import random
 import pickle
+from re import L
 import numpy as np
 
 # Import your existing modules
@@ -56,12 +57,15 @@ def encode_state(attacker, defender):
         defender.status
     )
 
-def choose_move_RL(state, attacker):
+def choose_move_RL(state, attacker, last_move):
     """
     Choose a move based on an ε-greedy policy:
       - With probability EPSILON, select a random move.
       - Otherwise, select the move with the highest Q-value.
     """
+    if last_move and attacker.item["name"] in ["choice-band", "choice-scarf", "choice-specs"]:
+        return last_move
+
     moves = list(attacker.moves.keys())
     if random.uniform(0, 1) < EPSILON:
         chosen = random.choice(moves)
@@ -109,8 +113,8 @@ def calculate_reward(attacker, defender, move, estimated_damage):
         reward -= 100
 
     # Reward status moves if applicable
-    if move["statusChange"][0] and defender.status is None:
-        status_effect = move["statusChange"][1]
+    if move["statusChange"] and defender.status is None:
+        status_effect = move["statusChange"][0]
         if status_effect == "paralyze" and defender.current_stats["speed"] > attacker.current_stats["speed"]:
             reward += 20
         elif status_effect == "burn" and defender.current_stats["attack"] > defender.current_stats["sp_attack"]:
@@ -119,14 +123,14 @@ def calculate_reward(attacker, defender, move, estimated_damage):
             reward += 25
 
     # Reward healing if HP is low
-    if move["heals"][0] and attacker.hp <= attacker.max_hp * 0.5:
+    if move["heals"] and attacker.hp <= attacker.max_hp * 0.5:
         reward += 40
 
     print(f"[Reward] Move '{move['name']}' generated reward: {reward}")
     return reward
 
 # -------------------- RL-BASED BATTLE AI FUNCTION -------------------- #
-def battleAI_RL(attacker, defender):
+def battleAI_RL(attacker, defender, last_move):
     """
     Reinforcement Learning-based move selection.
     1. Encode current state.
@@ -136,7 +140,7 @@ def battleAI_RL(attacker, defender):
     5. Return the chosen move.
     """
     state = encode_state(attacker, defender)
-    move_name = choose_move_RL(state, attacker)
+    move_name = choose_move_RL(state, attacker, last_move)
     move = attacker.moves[move_name]
 
     # Estimate damage (for reward calculation) but note that perform_move will change the state
@@ -192,7 +196,7 @@ def simulate_battle_RL(rl_trainer, opp_trainer):
             if agent.item["name"] in ["choice-band", "choice-scarf", "choice-specs"] and lastmove1:
                 move_rl = lastmove1
             else:
-                move_rl = battleAI_RL(agent, opp)
+                move_rl = battleAI_RL(agent, opp, lastmove1)
                 lastmove1 = move_rl
 
             print(f"{agent.name} (RL Agent) used '{move_rl}'.")
@@ -215,7 +219,8 @@ def simulate_battle_RL(rl_trainer, opp_trainer):
         else:
             # Even turn: Opponent attacks first
             print(f"[Turn Order] {opp.name} (Opponent) attacks first.")
-            move_opp = battle_ai.battleAI(opp, agent)
+            move_opp = battle_ai.battleAI(opp, agent, lastmove2)
+            lastmove2 = move_opp
             perform_move(opp, agent, opp.moves[move_opp])
             print(f"{opp.name} (Opponent) used '{move_opp}'.")
             print(f"After move, {agent.name} HP: {agent.hp}/{agent.max_hp}")
@@ -223,7 +228,8 @@ def simulate_battle_RL(rl_trainer, opp_trainer):
                 print(f"{agent.name} fainted!")
                 break
 
-            move_rl = battleAI_RL(agent, opp)
+            move_rl = battleAI_RL(agent, opp, lastmove1)
+            lastmove1 = move_rl
             print(f"{agent.name} (RL Agent) used '{move_rl}'.")
             print(f"After move, {opp.name} HP: {opp.hp}/{opp.max_hp}")
             if opp.is_fainted():
@@ -250,6 +256,7 @@ def simulate_battle_RL(rl_trainer, opp_trainer):
     return not agent.is_fainted()
 
 # -------------------- TRAINING LOOP -------------------- #
+from battle_test import charizard, blastoise, venusaur, pikachu, snorlax, alakazam, gengar, dragonite, mewtwo, tauros, mew, gyarados
 def train_RL_agent(episodes=1000):
     """
     Train the RL agent by simulating multiple battles.
@@ -258,40 +265,43 @@ def train_RL_agent(episodes=1000):
     """
     load_Q_table()
     wins = 0
-    for episode in range(episodes):
-        # For training, create new trainers with fresh copies of Pokémon.
-        # Using helper functions to generate new instances.
-        rl_trainer = Trainer("RL_Agent", [rl_agent_pokemon()])
-        opp_trainer = Trainer("Baseline", [baseline_pokemon()])
-        
-        print(f"=== Episode {episode+1} ===")
-        result = simulate_battle_RL(rl_trainer, opp_trainer)
-        if result:
-            wins += 1
-        
-        print(f"Episode {episode+1} complete. Cumulative win rate: {wins / (episode+1):.2f}\n")
+    pokemons = [charizard, blastoise, venusaur, pikachu, snorlax, alakazam, gengar, dragonite, mewtwo, tauros, mew, gyarados]
+    for rl_agent in pokemons:
+        for base_poke in pokemons:
+            for episode in range(episodes):
+                # For training, create new trainers with fresh copies of Pokémon.
+                # Using helper functions to generate new instances.
+                rl_trainer = Trainer("RL_Agent", [rl_agent_pokemon(rl_agent)])
+                opp_trainer = Trainer("Baseline", [baseline_pokemon(base_poke)])
+                
+                print(f"=== Episode {episode+1} ===")
+                result = simulate_battle_RL(rl_trainer, opp_trainer)
+                if result:
+                    wins += 1
+                
+                print(f"Episode {episode+1} complete. Cumulative win rate: {wins / (episode+1):.2f}\n")
     
     save_Q_table()
     print("Training complete. Q-table saved.")
 
 # -------------------- HELPER FUNCTIONS TO GENERATE POKÉMON -------------------- #
-def rl_agent_pokemon():
+def rl_agent_pokemon(rl_agent):
     """
     Returns a fresh instance of a Pokémon for the RL agent.
     Adjust to choose your preferred Pokémon.
     """
     from pokemon import Pokemon
-    from battle_test import copy_pokemon, charizard  # Assuming charizard is defined in battle_test.py
-    return copy_pokemon(charizard)
+    from battle_test import copy_pokemon # Assuming charizard is defined in battle_test.py
+    return copy_pokemon(rl_agent)
 
-def baseline_pokemon():
+def baseline_pokemon(base_poke):
     """
     Returns a fresh instance of a Pokémon for the baseline opponent.
     Adjust this function as necessary.
     """
     from pokemon import Pokemon
-    from battle_test import copy_pokemon, blastoise  # Assuming blastoise is defined in battle_test.py
-    return copy_pokemon(blastoise)
+    from battle_test import copy_pokemon  # Assuming blastoise is defined in battle_test.py
+    return copy_pokemon(base_poke)
 
 # -------------------- MAIN ENTRY POINT -------------------- #
 if __name__ == "__main__":

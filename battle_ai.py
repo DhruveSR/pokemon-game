@@ -44,7 +44,7 @@ def battleAI(attacker, defender, last_move):
             score += move["power"] // 2  # Higher power gets a boost
 
         # Check Status Moves
-        if move["statusChange"][0] and defender.status is None:
+        if move["statusChange"] and defender.status is None:
             status_effect = move["statusChange"][1]
 
             # Prefer paralysis against fast Pokémon
@@ -60,7 +60,7 @@ def battleAI(attacker, defender, last_move):
                 score += 25  
 
         # Check Healing Moves
-        if move["heals"][0] and attacker.hp <= attacker.max_hp * 0.5:
+        if move["heals"] and attacker.hp <= attacker.max_hp * 0.5:
             score += 40  # Healing is more important when HP is low
 
         move_scores[move_name] = score
