@@ -1,132 +1,158 @@
 import random
 from collections import defaultdict
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional
+from move import Move
 
+
+@dataclass
 class Pokemon:
-    """
-    Represents a Pokémon in a battle, including its stats, abilities, items, and battle mechanics.
+    name: str
+    typing: List[str]
+    level: int
+    base_stats: Dict[str, int] = field(default_factory=dict)
+    stat_stages: Dict[str, int] = field(default_factory=lambda: {"Atk": 0, "Def": 0, "SpA": 0, "SpD": 0, "Spe": 0})
+    ability: str
+    nature: str
+    evs: Dict[str, int] = field(default_factory=lambda: {"HP": 0, "Atk": 0, "Def": 0, "SpA": 0, "SpD": 0, "Spe": 0})
+    ivs: Dict[str, int] = field(default_factory=lambda: {"HP": 0, "Atk": 0, "Def": 0, "SpA": 0, "SpD": 0, "Spe": 0})
+    item: Optional[str] = None
+    moves: List[Move] = field(default_factory=list)  # Using a list of Move objects instead of a dictionary
+    status: Optional[str] = None
+    accuracy: float = 1.0
+    evasion: float = 1.0
+    critical_stage: int = 0
+    nature_effect: Dict[str, float] = field(default_factory=dict, init=False)
+    initial_stats: Dict[str, int] = field(default_factory=dict, init=False)
+    current_stats: Dict[str, int] = field(default_factory=dict, init=False)
+    max_hp: int = field(init=False)
+    hp: int = field(init=False)
 
-    Attributes:
-        name (str): Name of the Pokémon.
-        typing (list of str): The Pokémon's type(s) (e.g., ["Fire"], ["Water", "Flying"]).
-        level (int): The level of the Pokémon.
-        base_stats (dict): The base stats of the Pokémon (HP, Attack, Defense, etc.).
-        ability (str): The Pokémon's ability (e.g., "Levitate", "Intimidate").
-        nature (dict): The nature of the Pokémon, which affects stat growth (e.g., {"attack": 1.1, "sp_attack": 0.9}).
-        evs (dict): Effort Values (EVs) that affect stat growth.
-        ivs (dict): Individual Values (IVs) that determine stat potential.
-        item (dict or None): The held item (if any) that provides battle effects.
-        moves (dict): A dictionary of available moves with details like power, priority, accuracy, etc.
-        status (str or None): The current status condition (e.g., "burn", "paralyze", None if healthy).
-        accuracy (float): The Pokémon’s accuracy multiplier.
-        evasion (float): The Pokémon’s evasion multiplier.
-        critical_hit (int): The Pokémon’s critical hit multiplier (higher values mean more crits).
-        toxic_counter: Counter for badly_poison status
-        current_stats (dict): The Pokémon's real-time stats during battle.
-        max_hp (int): The Pokémon's maximum HP.
-        hp (int): The Pokémon’s current HP.
-    """
-    def __init__(self, name, typing, level, base_stats, ability, nature, evs, ivs, item, moves, status, accuracy, evasion, critical_hit):
-        """Initialize a Pokémon with its attributes, including stats, items, and battle-related properties."""
-        self.name = name
-        self.level = level
-        self.typing = typing
-        self.base_stats = base_stats
-        self.ability = ability
-        self.nature = nature
-        self.nature_effect = self.nature_effect_calc(self.nature)
-        self.evs = evs
-        self.ivs = ivs
-        self.item = item
-        self.moves = moves
-        self.status = status
-        self.accuracy = accuracy
-        self.evasion = evasion
-        self.critical_hit = critical_hit
-        self.toxic_counter=0
-        self.current_stats = self.calc_initial_stats()  # Calculate battle stats
-        self.max_hp = self.calc_max_hp()  # Set maximum HP
-        self.hp = self.max_hp  # Current HP starts at max
-        self.check_ability_use(None, "initialize")
+
+    def __post_init__(self):
+        """Runs after initialization to calculate Pokémon stats and HP."""
+        self.nature_effect = self.nature_effect_calc(self.nature)  # Apply nature stat effects
+        self.initial_stats = self.calc_initial_stats()  # Initial stat calculation
+        self.current_stats = self.initial_stats.copy()  # Ensuring separate object
+        self.max_hp = self.calc_max_hp()
+        self.hp = self.max_hp  # Start with full HP
 
 
     def nature_effect_calc(self, nature):
         """Applies the nature's effect to the Pokémon's stats using a defaultdict (default = 1.0)."""
 
-        # Nature multipliers
         nature_modifiers = {
-            "adamant":  {"attack": 1.1, "sp_attack": 0.9},
-            "modest":   {"sp_attack": 1.1, "attack": 0.9},
-            "jolly":    {"speed": 1.1, "sp_attack": 0.9},
-            "bold":     {"defense": 1.1, "attack": 0.9},
-            "calm":     {"sp_defense": 1.1, "attack": 0.9},
-            "careful":  {"sp_defense": 1.1, "sp_attack": 0.9},
-            "timid":    {"speed": 1.1, "attack": 0.9},
-            "relaxed":  {"defense": 1.1, "speed": 0.9},
-            "naive":    {"speed": 1.1, "sp_defense": 0.9},
-            "brave":    {"attack": 1.1, "speed": 0.9},
-            "quiet":    {"sp_attack": 1.1, "speed": 0.9},
-            "rash":     {"sp_attack": 1.1, "sp_defense": 0.9},
-            "gentle":   {"sp_defense": 1.1, "defense": 0.9},
-            "hasty":    {"speed": 1.1, "defense": 0.9},
-            "sassy":    {"sp_defense": 1.1, "speed": 0.9},
-            "docile":   {},  # Neutral
-            "hardy":    {},  # Neutral
-            "serious":  {},  # Neutral
-            "bashful":  {},  # Neutral
-            "quirky":   {}   # Neutral
+            "adamant":  defaultdict(lambda: 1.0, {"Atk": 1.1, "SpA": 0.9}),
+            "modest":   defaultdict(lambda: 1.0, {"SpA": 1.1, "Atk": 0.9}),
+            "jolly":    defaultdict(lambda: 1.0, {"Spe": 1.1, "SpA": 0.9}),
+            "bold":     defaultdict(lambda: 1.0, {"Def": 1.1, "Atk": 0.9}),
+            "calm":     defaultdict(lambda: 1.0, {"SpD": 1.1, "Atk": 0.9}),
+            "careful":  defaultdict(lambda: 1.0, {"SpD": 1.1, "SpA": 0.9}),
+            "timid":    defaultdict(lambda: 1.0, {"Spe": 1.1, "Atk": 0.9}),
+            "relaxed":  defaultdict(lambda: 1.0, {"Def": 1.1, "Spe": 0.9}),
+            "naive":    defaultdict(lambda: 1.0, {"Spe": 1.1, "SpD": 0.9}),
+            "brave":    defaultdict(lambda: 1.0, {"Atk": 1.1, "Spe": 0.9}),
+            "quiet":    defaultdict(lambda: 1.0, {"SpA": 1.1, "Spe": 0.9}),
+            "rash":     defaultdict(lambda: 1.0, {"SpA": 1.1, "SpD": 0.9}),
+            "gentle":   defaultdict(lambda: 1.0, {"SpD": 1.1, "Def": 0.9}),
+            "hasty":    defaultdict(lambda: 1.0, {"Spe": 1.1, "Def": 0.9}),
+            "sassy":    defaultdict(lambda: 1.0, {"SpD": 1.1, "Spe": 0.9}),
+            "docile":   defaultdict(lambda: 1.0, {}),
+            "hardy":    defaultdict(lambda: 1.0, {}),
+            "serious":  defaultdict(lambda: 1.0, {}),
+            "bashful":  defaultdict(lambda: 1.0, {}),
+            "quirky":   defaultdict(lambda: 1.0, {})
         }
 
-        # Default all stats to 1.0 (no change)
-        effect = defaultdict(lambda: 1.0, nature_modifiers.get(nature.lower(), {}))
-
         # Apply multipliers to stats
-        return {stat: effect[stat] for stat in ["attack", "defense", "sp_attack", "sp_defense", "speed"]}
+        nature_effects = nature_modifiers.get(nature, defaultdict(lambda: 1.0, {}))
+        return {stat: nature_effects[stat] for stat in ["Atk", "Def", "SpA", "SpD", "Spe"]}
+
 
     def calc_max_hp(self):
         """Calculate and return the maximum HP of the Pokémon."""
         if self.name == "Shedinja":
             return 1  # Shedinja always has 1 HP due to its ability
-        return int(((2 * self.base_stats["hp"] + self.ivs["hp"] + (self.evs["hp"] // 4)) * self.level / 100) + self.level + 10)
+        return int(((2 * self.base_stats["HP"] + self.ivs["HP"] + (self.evs["HP"] // 4)) * self.level / 100) + self.level + 10)
+
 
     def calc_initial_stats(self):
-        """Calculate and return the Pokémon's initial stats based on its base stats, EVs, IVs, level, and nature."""
-        
+        """Calculate and return Pokémon's stats based on base stats, EVs, IVs, level, and nature."""
         def calculate_stat(stat, nature_modifier):
             return int(((2 * self.base_stats[stat] + self.ivs[stat] + (self.evs[stat] // 4)) * self.level / 100 + 5) * nature_modifier)
+        
+        return {stat: calculate_stat(stat, self.nature_effect[stat]) for stat in ["Atk", "Def", "SpA", "SpD", "Spe"]}
 
-        stats = {
-            "attack": calculate_stat("attack", self.nature_effect["attack"]),  
-            "sp_attack": calculate_stat("sp_attack", self.nature_effect["sp_attack"]),
-            "defense": calculate_stat("defense", self.nature_effect["defense"]),
-            "sp_defense": calculate_stat("sp_defense", self.nature_effect["sp_defense"]),
-            "speed": calculate_stat("speed", self.nature_effect["speed"]),
-        }
-        return stats
 
     def stats_change(self, stat, change):
         """Modify a Pokémon's battle stats (attack, defense, speed, etc.) with a given multiplier."""
-        self.current_stats[stat] = max(1, int(self.current_stats[stat]*change))  # Ensures the stat doesn't drop below 1
+        self.current_stats[stat] = max(1, int(self.initial_stats[stat]*change))  # Ensures the stat doesn't drop below 1
+
 
     def other_stats_change(self, other_stat, change):
-        """Modify non-basic stats (accuracy, evasion, critical hit chance)."""
+        """Modify non-basic stats (accuracy, evasion, critical hit stage)."""
         if other_stat == "accuracy":
             self.accuracy *= change
         elif other_stat == "evasion":
             self.evasion *= change
         elif other_stat == "critical_hit":
-            self.critical_hit = {2: 3, 3: 12, 4: 24}.get(change, self.critical_hit)  # Adjust critical hit\
+            self.critical_stage = min(max(self.critical_stage + change, 0), 3) # Default to 100% for stage 3+
+
+    
+    def get_crit_chance(self):
+        """Returns the crit chance based on the current crit stage."""
+        crit_chances = {0: 1/24, 1: 1/8, 2: 1/2, 3: 1.0}
+        return crit_chances[self.critical_stage]
+
 
     def take_damage(self, damage):
         """Reduce the Pokémon's HP when taking damage, ensuring it doesn't drop below 0."""
+        # Check for Focus Sash (prevents 1-hit KO if at full HP)
+        if self.hp == self.max_hp and (self.item == "focus-sash" or (self.item == "focus-band" and random.random() < 0.1)) and damage >= self.hp:
+            self.hp = 1
+            self.item = None  # Focus Sash is consumed
+            print(f"{self.name} held on with its Focus Sash!")
+            return
+        
         self.hp = max(0, self.hp - damage)
+    
+
+    def heal_hp(self, amount: int):
+        """Heal the Pokémon, but not beyond its max HP."""
+        self.hp = min(self.max_hp, self.hp + amount)
+        print(f"{self.name} healed for {amount} HP! Current HP: {self.hp}/{self.max_hp}")
+
 
     def is_fainted(self):
         """Check if the Pokémon has fainted (i.e., its HP has reached 0)."""
         return self.hp == 0
 
+
     def __str__(self):
-        """Return a string representation of the Pokémon, displaying its name and current HP."""
-        return f"{self.name} (HP: {self.hp}/{self.max_hp})"
+            """Return a detailed string representation of the Pokémon."""
+            info = f"{self.name} (Level {self.level})\n"
+            info += f"Type: {', '.join(self.typing)}\n"
+            info += f"HP: {self.hp}/{self.max_hp}\n"
+            
+            if self.status:
+                info += f"Status: {self.status}\n"
+
+            info += "Stats:\n"
+            for stat, value in self.current_stats.items():
+                info += f"  {stat}: {value}\n"
+
+            info += f"Accuracy: {self.accuracy:.2f}, Evasion: {self.evasion:.2f}, Crit Stage: {self.critical_hit}\n"
+            
+            if self.item:
+                info += f"Item: {self.item}\n"
+
+            if self.moves:
+                info += "Moves:\n"
+                for move in self.moves:
+                    info += f"  {move}\n"
+
+            return info.strip()
+
 
     def check_item_use(self, opp, when):
         """Check and apply effects of held items at different battle stages (e.g., switch-in, attack, defend, end of turn)."""
