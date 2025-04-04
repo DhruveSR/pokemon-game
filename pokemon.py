@@ -17,7 +17,7 @@ class Pokemon:
     evs: Dict[str, int] = field(default_factory=lambda: {"HP": 0, "Atk": 0, "Def": 0, "SpA": 0, "SpD": 0, "Spe": 0})
     ivs: Dict[str, int] = field(default_factory=lambda: {"HP": 0, "Atk": 0, "Def": 0, "SpA": 0, "SpD": 0, "Spe": 0})
     item: Optional[str] = None
-    moves: List[Move] = field(default_factory=list)  # Using a list of Move objects instead of a dictionary
+    moves: List[Move] = field(default_factory=list)
     status: Optional[str] = None
     accuracy: float = 1.0
     evasion: float = 1.0

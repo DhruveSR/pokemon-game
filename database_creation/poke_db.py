@@ -5,6 +5,7 @@ def create_pokemon_table():
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS Pokemon (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        pokedex_no INTEGER NOT NULL,
         name TEXT NOT NULL UNIQUE,
         type1 TEXT NOT NULL,
         type2 TEXT,  
@@ -17,9 +18,11 @@ def create_pokemon_table():
         ability1 TEXT NOT NULL,   -- First possible ability
         ability1_text TEXT NOT NULL, -- First ability text
         ability2 TEXT,            -- Second possible ability (optional)
-        ability2_text TEXT, -- First ability text
-        ability3 TEXT,  -- Hidden ability (optional)
-        ability3_text TEXT -- First ability text
+        ability2_text TEXT, -- second ability text
+        ability2_isHidden TEXT,  -- True of False
+        ability3 TEXT,  -- third ability (optional)
+        ability3_text TEXT -- third ability text
+        ability3_isHidden TEXT,  -- True of False
     );
     """)
     conn.commit()
