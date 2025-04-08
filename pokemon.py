@@ -2,7 +2,7 @@ import random
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
-from move import Move
+from models.pokemon.move import Move
 
 
 @dataclass

@@ -6,6 +6,7 @@ class PokemonDexInfo:
     """Represents base species data, like a Pokédex entry."""
     name: str
     pokedex_no: int
+    pokedex_entry: str
     typing: List[str] = field(default_factory=list)  # Pokémon's typing (e.g., Fire, Water)
     species: str
     height: float
@@ -21,3 +22,4 @@ class PokemonDexInfo:
     gender_ratio: Dict[str, float] = field(default_factory=lambda: {"male": 0.5, "female": 0.5})
     egg_cycle: int
     evolution: Optional[List[Dict[str, any]]] = None  # List of evolution conditions
+    moves_list: Dict[str, List[Dict[str, any]]] = field(default_factory=lambda: {})
