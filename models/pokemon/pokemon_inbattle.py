@@ -27,10 +27,26 @@ class PokemonInBattle:
     critical_stage: int = 0
 
 
+    def __post_init__(self):
+        """Initialize battle-specific values after dataclass construction."""
+        self.current_stats = self.pokemon.actual_stats.copy()
+
+
     def apply_stat_boost(self, stat: str, stages: int):
         """Apply a stat boost or drop within the -6 to +6 range."""
         if stat in self.stat_stages:
             self.stat_stages[stat] = max(-6, min(6, self.stat_stages[stat] + stages))  # Clamp between -6 and +6
+
+    
+    def update_current_stats(self):
+        """Recalculate current stats based on stat stages."""
+        stage_multipliers = {
+            -6: 2/8, -5: 2/7, -4: 2/6, -3: 2/5, -2: 2/4, -1: 2/3,
+             0: 1, 1: 3/2, 2: 4/2, 3: 5/2, 4: 6/2, 5: 7/2, 6: 8/2
+        }
+
+        for stat, stage in self.stat_stages.items():
+            self.current_stats[stat] = int(self.pokemon.actual_stats[stat] * stage_multipliers[stage])
 
 
     def take_damage(self, damage):
@@ -41,7 +57,7 @@ class PokemonInBattle:
             self.pokemon.item = None if self.pokemon.item == "focus-sash" else self.pokemon.item
             return
         
-        self.hp = max(0, self.hp - damage)
+        self.pokemon.current_hp = max(0, self.pokemon.current_hp - damage)
     
 
     def heal_hp(self, amount: int):
@@ -86,4 +102,4 @@ class PokemonInBattle:
         self.status_turn = 0
         self.accuracy = 1.0
         self.evasion = 1.0
-        self.critical_stage = 1
+        self.critical_stage = 0

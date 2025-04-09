@@ -72,3 +72,4 @@ class Move:
         move_info += f"Accuracy: {self.accuracy}%, Priority: {self.priority}\n"
 
         return move_info.strip()
+
