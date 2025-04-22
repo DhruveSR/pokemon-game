@@ -34,11 +34,18 @@ class BattleState:
         priority = move.priority
         if user.pokemon.ability == "prankster" and move.category == "status":
             priority +=1
+        if user.pokemon.ability == "triage" and (move.heals or move.damage_heals):
+            priority +=1
+        if user.pokemon.ability == "stall":
+            priority -=7
+
+        return priority
 
 
     def get_turn_order(self, move_choices: Dict[PokemonInBattle, str]):
         """
-        Determine the turn order based on move priority, Speed, and Trick Room.
+        Determine the turn order based on move priority, Speed, Trick Room,
+        Quick Draw, Quick Claw, and Custap Berry.
 
         :param move_choices: Dictionary mapping each Pokémon to their selected move.
         :return: List of Pokémon in the order they will act.
@@ -46,13 +53,59 @@ class BattleState:
         all_pokemon = self.trainer_pokemon + self.opponent_pokemon
 
         # Get priority levels for each Pokémon based on their selected move
-        priority_map = {pkmn: self.get_move_priority(move_choices.get(pkmn, "Struggle"), pkmn) for pkmn in all_pokemon}
+        priority_map = {
+            pkmn: self.get_move_priority(move_choices.get(pkmn, "Struggle"), pkmn) 
+            for pkmn in all_pokemon
+        }
 
-        # Sort by priority first, then by Speed (higher goes first unless Trick Room is active)
-        def sort_key(pkmn):
+        # Determine if Quick Draw, Quick Claw, or Custap Berry activates
+        quick_effects = {}
+        for pkmn in all_pokemon:
+            move = create_move(move_choices.get(pkmn, "Struggle"))
+            is_damaging = move.category != "status"
+
+            # Check Quick Draw first (supersedes other effects)
+            quick_draw_activated = (
+                is_damaging and 
+                pkmn.pokemon.ability == "quick-draw" and 
+                random.random() <= 0.3
+            )
+
+            # Only check other effects if Quick Draw didn't activate
+            if not quick_draw_activated:
+                # Check Custap Berry before Quick Claw (consumed at turn start)
+                custap_activated = (
+                    pkmn.pokemon.item == "custap-berry" and
+                    (pkmn.pokemon.current_hp / pkmn.pokemon.actual_stats["hp"] <= 
+                    (0.5 if pkmn.pokemon.ability == "gluttony" else 0.25))
+                )
+                # Quick Claw only checked if Custap didn't activate
+                quick_claw_activated = (
+                    not custap_activated and
+                    pkmn.pokemon.item == "quick-claw" and
+                    random.random() <= 0.2
+                )
+            else:
+                custap_activated = quick_claw_activated = False
+
+            # Store effect priority (2: Quick Draw, 1: Custap/Quick Claw, 0: none)
+            quick_effects[pkmn] = (
+                2 if quick_draw_activated else
+                1 if custap_activated or quick_claw_activated else
+                0
+            )
+
+            # Consume Custap Berry if activated
+            if custap_activated:
+                pkmn.pokemon.item = None
+
+        # Sort by priority first, then by Quick effects, then Speed (adjusted for Trick Room)
+        def sort_key(pkmn: PokemonInBattle):
             return (
-                priority_map[pkmn],  # Sort by priority first (higher is better)
-                -pkmn.current_stats["Spe"] if "trick-room" in self.field_effects else pkmn.current_stats["Spe"],  # Adjust for Trick Room
+                priority_map[pkmn],  # Primary sort: Move priority
+                quick_effects[pkmn],  # Secondary sort: Quick effects
+                -pkmn.current_stats["Spe"] if "trick-room" in self.field_effects 
+                    else pkmn.current_stats["Spe"],  # Trick Room handling
                 random.random()  # Random tiebreaker
             )
 
